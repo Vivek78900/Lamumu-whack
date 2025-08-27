@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lamumu Whack</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 20px;
+            overflow: hidden;
+            cursor: none;
+        }
+        
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            padding: 25px;
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+        
+        .logo {
+            font-size: 2.8rem;
+            font-weight: bold;
+            color: #ff9e44;
+            text-shadow: 3px 3px 0 #ff5e5b, 
+                        6px 6px 0 rgba(0, 0, 0, 0.2);
+            letter-spacing: 2px;
+        }
+        
+        .score-board {
+            display: flex;
+            gap: 25px;
+        }
+        
+        .score, .timer {
+            background: rgba(0, 0, 0, 0.4);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            min-width: 120px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .value {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #ff9e44;
+            text-shadow: 0 0 10px rgba(255, 158, 68, 0.6);
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .hole {
+            width: 100%;
+            height: 140px;
+            background-color: #5D4037;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 10px 0 rgba(0, 0, 0, 0.5),
+                        0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .hole:after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 40px;
+            background-color: #3E2723;
+            bottom: -20px;
+            border-radius: 50%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .character {
+            width: 90%;
+            height: 90%;
+            position: absolute;
+            bottom: -100%;
+            left: 5%;
+            transition: bottom 0.3s ease;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center bottom;
+            z-index: 2;
+            image-rendering: high-quality;
+        }
+        
+        .character.up {
+            bottom: 15%;
+        }
+        
+        .hammer {
+            width: 120px;
+            height: 220px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            pointer-events: none;
+            z-index: 100;
+            transition: transform 0.1s;
+            filter: drop-shadow(4px 4px 3px rgba(0,0,0,0.7));
+        }
+        
+        .hammer-head {
+            position: absolute;
+            width: 80px;
+            height: 60px;
+            background: linear-gradient(to bottom, #8B4513 0%, #A0522D 100%);
+            border-radius: 10px;
+            top: 50px;
+            left: 20px;
+            box-shadow: inset 5px 0 10px rgba(139, 69, 19, 0.7),
+                        inset -5px 0 10px rgba(139, 69, 19, 0.7),
+                        inset 0 5px 10px rgba(160, 82, 45, 0.7),
+                        inset 0 -5px 10px rgba(139, 69, 19, 0.7);
+        }
+        
+        .hammer-head:before {
+            content: '';
+            position: absolute;
+            width: 90%;
+            height: 80%;
+            top: 10%;
+            left: 5%;
+            background: linear-gradient(to right, transparent 0%, rgba(139, 69, 19, 0.3) 50%, transparent 100%);
+            border-radius: 8px;
+        }
+        
+        .hammer-handle {
+            position: absolute;
+            width: 25px;
+            height: 160px;
+            background: linear-gradient(to bottom, #D2691E 0%, #8B4513 100%);
+            border-radius: 5px;
+            top: 60px;
+            left: 47px;
+            transform-origin: top center;
+            box-shadow: inset 3px 0 5px rgba(139, 69, 19, 0.7),
+                        inset -3px 0 5px rgba(139, 69, 19, 0.7);
+        }
+        
+        .hammer-handle:before {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 20px;
+            background: linear-gradient(to bottom, #8B4513 0%, #A0522D 100%);
+            border-radius: 5px;
+            top: -10px;
+            left: -2.5px;
+        }
+        
+        .hammer.hit {
+            transform: translate(-50%, -50%) rotate(-35deg);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(to right, #ff5e5b, #ff9e44);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(2px);
+        }
+        
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+            color: white;
+            display: none;
+        }
+        
+        .game-over h2 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #ff9e44;
+            text-shadow: 0 0 20px rgba(255, 158, 68, 0.8);
+        }
+        
+        .game-over p {
+            font-size: 2rem;
+            margin-bottom: 40px;
+        }
+        
+        @keyframes explode {
+            0% { transform: scale(0.5); opacity: 1; filter: blur(0px); }
+            50% { transform: scale(2); opacity: 0.8; filter: blur(2px); }
+            100% { transform: scale(4); opacity: 0; filter: blur(10px); }
+        }
+        
+        .explosion {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, #ff5e5b 0%, #ff9e44 30%, rgba(255, 94, 91, 0) 70%);
+            border-radius: 50%;
+            animation: explode 0.6s ease-out forwards;
+            z-index: 99;
+            pointer-events: none;
+        }
+        
+        @keyframes bombFlash {
+            0% { opacity: 1; filter: brightness(1); }
+            25% { opacity: 0.8; filter: brightness(1.5); }
+            50% { opacity: 1; filter: brightness(1); }
+            75% { opacity: 0.8; filter: brightness(1.8); }
+            100% { opacity: 1; filter: brightness(1); }
+        }
+        
+        .bomb-flash {
+            animation: bombFlash 0.5s infinite;
+        }
+        
+        @keyframes smoke {
+            0% { transform: scale(0.5); opacity: 0.8; filter: blur(5px); }
+            100% { transform: scale(3); opacity: 0; filter: blur(20px); }
+        }
+        
+        .smoke {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, rgba(200, 200, 200, 0.6) 0%, rgba(150, 150, 150, 0.3) 40%, transparent 70%);
+            border-radius: 50%;
+            animation: smoke 2s ease-out forwards;
+            z-index: 98;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 700px) {
+            .game-board {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .logo {
+                font-size: 2rem;
+            }
+            
+            .hole {
+                height: 110px;
+            }
+            
+            .score-board {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .hammer {
+                width: 90px;
+                height: 160px;
+            }
+            
+            .hammer-head {
+                width: 60px;
+                height: 45px;
+                top: 40px;
+                left: 15px;
+            }
+            
+            .hammer-handle {
+                width: 20px;
+                height: 120px;
+                top: 45px;
+                left: 35px;
+            }
+            
+            .hammer-handle:before {
+                width: 25px;
+                height: 15px;
+                top: -8px;
+                left: -2.5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <div class="logo">LAMUMU WHACK</div>
+            <div class="score-board">
+                <div class="score">
+                    <div class="value" id="score">0</div>
+                </div>
+                <div class="timer">
+                    <div class="value" id="timer">60</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-board" id="gameBoard">
+            <div class="hole">
+                <div class="character" id="char0"></div>
+            </div>
+            <div class="hole">
+                <div class="character" id="char1"></div>
+            </div>
+            <div class="hole">
+                <div class="character" id="char2"></div>
+            </div>
+            <div class="hole">
+                <div class="character" id="char3"></div>
+            </div>
+            <div class="hole">
+                <div class="character" id="char4"></div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn">Start</button>
+            <button id="resetBtn">Reset</button>
+        </div>
+    </div>
+    
+    <div class="hammer" id="hammer">
+        <div class="hammer-head"></div>
+        <div class="hammer-handle"></div>
+    </div>
+    
+    <div class="game-over" id="gameOver">
+        <h2>Game Over!</h2>
+        <p>Score: <span id="finalScore">0</span></p>
+        <button id="playAgainBtn">Play Again</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game elements
+            const gameBoard = document.getElementById('gameBoard');
+            const holes = document.querySelectorAll('.hole');
+            const characters = document.querySelectorAll('.character');
+            const scoreDisplay = document.getElementById('score');
+            const timerDisplay = document.getElementById('timer');
+            const startBtn = document.getElementById('startBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const hammer = document.getElementById('hammer');
+            const gameOverScreen = document.getElementById('gameOver');
+            const finalScoreDisplay = document.getElementById('finalScore');
+            const playAgainBtn = document.getElementById('playAgainBtn');
+            
+            // Game variables
+            let score = 0;
+            let timeLeft = 60;
+            let timer;
+            let gameActive = false;
+            let lastHole = -1;
+            
+            // Character images from GitHub - using raw content URLs
+            const characterImages = [
+                "https://raw.githubusercontent.com/Vivek78900/Lamumu-whack/main/20250826_200245-removebg-preview.png",
+                "https://raw.githubusercontent.com/Vivek78900/Lamumu-whack/main/SPOILER_23c98620-c032-4454-8201-495b8315f3d8-removebg-preview.png",
+                "https://raw.githubusercontent.com/Vivek78900/Lamumu-whack/main/char1.png",
+                "https://raw.githubusercontent.com/Vivek78900/Lamumu-whack/main/char2.png"
+            ];
+            
+            // Preload images
+            function preloadImages() {
+                characterImages.forEach(src => {
+                    const img = new Image();
+                    img.src = src;
+                });
+            }
+            
+            preloadImages();
+            
+            // Create audio context for better sound effects
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Sound functions
+            function playStartSound() {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+                oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+                
+                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.5);
+            }
+            
+            function playWhackSound() {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.1);
+                
+                gainNode.gain.setValueAtTime(0.7, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.2);
+            }
+            
+            function playBombSound() {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(100, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.5);
+                
+                gainNode.gain.setValueAtTime(0.8, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.8);
+            }
+            
+            // Move hammer with mouse
+            document.addEventListener('mousemove', (e) => {
+                hammer.style.left = e.pageX + 'px';
+                hammer.style.top = e.pageY + 'px';
+            });
+            
+            // Hammer click animation
+            document.addEventListener('mousedown', () => {
+                hammer.classList.add('hit');
+            });
+            
+            document.addEventListener('mouseup', () => {
+                hammer.classList.remove('hit');
+            });
+            
+            // Start game
+            startBtn.addEventListener('click', startGame);
+            
+            // Reset game
+            resetBtn.addEventListener('click', resetGame);
+            
+            // Play again
+            playAgainBtn.addEventListener('click', resetGame);
+            
+            // Whack action
+            gameBoard.addEventListener('click', (e) => {
+                if (!gameActive) return;
+                
+                let clickedElement = e.target;
+                // Find the character element if clicked on a hole
+                while (clickedElement && !clickedElement.classList.contains('hole') && clickedElement !== gameBoard) {
+                    clickedElement = clickedElement.parentElement;
+                }
+                
+                if (clickedElement && clickedElement.classList.contains('hole')) {
+                    const character = clickedElement.querySelector('.character');
+                    
+                    if (character && character.classList.contains('up')) {
+                        const isBomb = character.classList.contains('bomb');
+                        
+                        if (isBomb) { // Bomb
+                            playBombSound();
+                            createExplosion(character);
+                            createSmoke(character);
+                            character.classList.remove('up');
+                            setTimeout(() => gameOver(), 500);
+                            return;
+                        }
+                        
+                        // Whack successful
+                        playWhackSound();
+                        score += 10;
+                        scoreDisplay.textContent = score;
+                        character.classList.remove('up');
+                        
+                        // Add visual feedback
+                        character.style.transform = 'scale(0.8)';
+                        setTimeout(() => {
+                            character.style.transform = 'scale(1)';
+                        }, 100);
+                    }
+                }
+            });
+            
+            function startGame() {
+                if (gameActive) return;
+                
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                
+                playStartSound();
+                gameActive = true;
+                score = 0;
+                timeLeft = 60;
+                scoreDisplay.textContent = score;
+                timerDisplay.textContent = timeLeft;
+                
+                // Start timer
+                timer = setInterval(() => {
+                    timeLeft--;
+                    timerDisplay.textContent = timeLeft;
+                    
+                    if (timeLeft <= 0) {
+                        gameOver();
+                    }
+                }, 1000);
+                
+                // Start popping up characters
+                popUpCharacters();
+            }
+            
+            function resetGame() {
+                clearInterval(timer);
+                gameActive = false;
+                score = 0;
+                timeLeft = 60;
+                scoreDisplay.textContent = score;
+                timerDisplay.textContent = timeLeft;
+                
+                // Hide all characters
+                characters.forEach(char => {
+                    char.classList.remove('up');
+                    char.classList.remove('bomb');
+                    char.classList.remove('bomb-flash');
+                    char.style.backgroundImage = "";
+                    char.innerHTML = "";
+                    char.style.transform = 'scale(1)';
+                });
+                
+                // Hide game over screen
+                gameOverScreen.style.display = 'none';
+            }
+            
+            function popUpCharacters() {
+                if (!gameActive) return;
+                
+                const time = Math.random() * 1500 + 500; // Random time between 0.5-2s
+                const hole = selectRandomHole();
+                const character = hole.querySelector('.character');
+                const isBomb = Math.random() < 0.2; // 20% chance of bomb
+                
+                if (isBomb) {
+                    // Create bomb with animated SVG
+                    character.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                            <circle cx="50" cy="40" r="30" fill="#212121"/>
+                            <rect x="45" y="70" width="10" height="15" fill="#795548"/>
+                            <path d="M40,25 Q50,10 60,25" stroke="#ff5e5b" stroke-width="3" fill="none"/>
+                            <circle cx="40" cy="30" r="3" fill="#ff5e5b" class="bomb-flash"/>
+                            <circle cx="60" cy="30" r="3" fill="#ff5e5b" class="bomb-flash"/>
+                            <path d="M45,40 Q50,45 55,40" stroke="#ff5e5b" stroke-width="2" fill="none"/>
+                        </svg>
+                    `;
+                    character.classList.add('bomb');
+                    character.style.backgroundImage = "";
+                } else {
+                    // Use a random character image from GitHub
+                    const randomChar = Math.floor(Math.random() * 4);
+                    character.style.backgroundImage = `url(${characterImages[randomChar]})`;
+                    character.innerHTML = ""; // Clear any previous SVG
+                    character.classList.remove('bomb');
+                }
+                
+                // Show character
+                character.classList.add('up');
+                
+                // Hide after random time
+                setTimeout(() => {
+                    if (character.classList.contains('up')) {
+                        character.classList.remove('up');
+                    }
+                    if (gameActive) {
+                        popUpCharacters();
+                    }
+                }, time);
+            }
+            
+            function selectRandomHole() {
+                let index = Math.floor(Math.random() * holes.length);
+                // Prevent same hole from being selected twice in a row
+                while (index === lastHole) {
+                    index = Math.floor(Math.random() * holes.length);
+                }
+                lastHole = index;
+                return holes[index];
+            }
+            
+            function createExplosion(element) {
+                const rect = element.getBoundingClientRect();
+                const explosion = document.createElement('div');
+                explosion.classList.add('explosion');
+                explosion.style.left = (rect.left + rect.width/2 - 50) + 'px';
+                explosion.style.top = (rect.top + rect.height/2 - 50) + 'px';
+                document.body.appendChild(explosion);
+                
+                setTimeout(() => {
+                    document.body.removeChild(explosion);
+                }, 600);
+            }
+            
+            function createSmoke(element) {
+                const rect = element.getBoundingClientRect();
+                const smoke = document.createElement('div');
+                smoke.classList.add('smoke');
+                smoke.style.left = (rect.left + rect.width/2 - 40) + 'px';
+                smoke.style.top = (rect.top + rect.height/2 - 40) + 'px';
+                document.body.appendChild(smoke);
+                
+                setTimeout(() => {
+                    document.body.removeChild(smoke);
+                }, 2000);
+            }
+            
+            function gameOver() {
+                gameActive = false;
+                clearInterval(timer);
+                
+                // Show game over screen
+                finalScoreDisplay.textContent = score;
+                gameOverScreen.style.display = 'flex';
+            }
+        });
+    </script>
+</body>
+</html>
