@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lamumu Whack</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <div class="logo">LAMUMU WHACK</div>
+            <div class="score-board">
+                <div class="score">
+                    <div class="value" id="score">0</div>
+                </div>
+                <div class="timer">
+                    <div class="value" id="timer">60</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-board" id="gameBoard">
+            <div class="hole-container">
+                <div class="mound"></div>
+                <div class="hole">
+                    <div class="character" id="char0"></div>
+                </div>
+            </div>
+            <div class="hole-container">
+                <div class="mound"></div>
+                <div class="hole">
+                    <div class="character" id="char1"></div>
+                </div>
+            </div>
+            <div class="hole-container">
+                <div class="mound"></div>
+                <div class="hole">
+                    <div class="character" id="char2"></div>
+                </div>
+            </div>
+            <div class="hole-container">
+                <div class="mound"></div>
+                <div class="hole">
+                    <div class="character" id="char3"></div>
+                </div>
+            </div>
+            <div class="hole-container">
+                <div class="mound"></div>
+                <div class="hole">
+                    <div class="character" id="char4"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn">Start</button>
+            <button id="resetBtn">Reset</button>
+        </div>
+    </div>
+    
+    <div class="hammer" id="hammer">
+        <div class="hammer-head"></div>
+        <div class="hammer-handle"></div>
+    </div>
+    
+    <div class="game-over" id="gameOver">
+        <h2>Game Over!</h2>
+        <p>Score: <span id="finalScore">0</span></p>
+        <button id="playAgainBtn">Play Again</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+                      </html>
